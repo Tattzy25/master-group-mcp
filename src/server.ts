@@ -940,7 +940,7 @@ const searchShopPoliciesAndFaqsInputSchema = z.object({
 
 function createServer() {
   const server = new McpServer({
-    name: "unified-shopify-mcp",
+    name: "Master Group MCP",
     version: "1.0.0"
   });
 
