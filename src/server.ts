@@ -625,7 +625,7 @@ const cancelCartInputSchema = z.object({
     })
     .describe("Request metadata. You must include ucp-agent.profile and idempotency-key."),
   id: z.string().describe("The ID of the cart to cancel.")
-});
+}); 
 
 // ==========================================
 // CHECKOUT SCHEMAS
