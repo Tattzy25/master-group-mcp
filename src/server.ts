@@ -972,17 +972,11 @@ const searchShopPoliciesAndFaqsInputSchema = z.object({
 
 function createServer() {
   const server = new McpServer({
-    name: "Master Group MCP",
+    name: "unified-shopify-mcp",
     version: "1.0.0"
   });
 
   // --- Global Catalog Tools ---
-
-  function createServer() {
-  const server = new McpServer({
-    name: "Global Search MCP",
-    version: "1.0.0"
-  });
 
   server.registerTool(
     "global_search_catalog",
