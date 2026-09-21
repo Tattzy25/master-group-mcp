@@ -1014,6 +1014,12 @@ function createServer() {
 
   // --- Storefront Catalog Tools ---
 
+  function createServer() {
+  const server = new McpServer({
+    name: "Storefront Search MCP",
+    version: "1.0.0"
+  });
+
   server.registerTool(
     "search_catalog",
     {
