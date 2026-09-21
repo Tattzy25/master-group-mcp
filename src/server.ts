@@ -1045,6 +1045,81 @@ function createServer() {
           params: { name: "get_product", arguments: { meta, catalog } }
         })
       });
+      const result = await response.json() as Record<string, unknown>;
+      return { content: [{ text: JSON.stringify(result), type: "text" }], structuredContent: result };
+    }
+  );function createServer() {
+  const server = new McpServer({
+    name: "Global Search MCP",
+    version: "1.0.0"
+  });
+
+  server.registerTool(
+    "global_search_catalog",
+    {
+      description: "Searches for products across all Shopify merchants. The response conforms to the UCP catalog search response, including a UCP metadata envelope; products with title, description, price range (minor units), media, and variants. Use this when a customer asks for products matching criteria from any merchant, or wants to compare products across multiple stores. Some response fields (description, options, metadata.attributes, metadata.tech_specs, metadata.top_features, metadata.unique_selling_points, variants[].condition) are inferred by Shopify and may not always be present or may vary in accuracy. Treat them as discovery and merchandising signals, not as merchant-authored source text.",
+      inputSchema: globalSearchCatalogInputSchema
+    },
+    async ({ meta, catalog }: z.infer<typeof globalSearchCatalogInputSchema>) => {
+      const response = await fetch("https://catalog.shopify.com/api/ucp/mcp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          jsonrpc: "2.0",
+          method: "tools/call",
+          id: 2,
+          params: { name: "search_catalog", arguments: { meta, catalog } }
+        })
+      });
+      const result = await response.json() as Record<string, unknown>;
+      return { content: [{ text: JSON.stringify(result), type: "text" }], structuredContent: result };
+    }
+  );
+
+  server.registerTool(
+    "global_lookup_catalog",
+    {
+      description: "Retrieves products or variants by identifier from across all Shopify merchants. The response conforms to the UCP catalog lookup response, including products with inputs correlation on each variant and not_found messages for unresolved identifiers. Use this when you have product or variant IDs from search results or deep links, need to resolve multiple identifiers in a single request, or are validating cart items against current catalog data.",
+      inputSchema: globalLookupCatalogInputSchema
+    },
+    async ({ meta, catalog }: z.infer<typeof globalLookupCatalogInputSchema>) => {
+      const response = await fetch("https://catalog.shopify.com/api/ucp/mcp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          jsonrpc: "2.0",
+          method: "tools/call",
+          id: 3,
+          params: { name: "lookup_catalog", arguments: { meta, catalog } }
+        })
+      });
+      const result = await response.json() as Record<string, unknown>;
+      return { content: [{ text: JSON.stringify(result), type: "text" }], structuredContent: result };
+    }
+  );
+
+  server.registerTool(
+    "global_get_product",
+    {
+      description: "Retrieves full details for a single product with optional variant selection. The response conforms to the UCP catalog get_product response, including product.selected reflecting effective option selections, option values with available and exists signals, and variants matching the selection. Use this when a customer has selected a product and needs full details, you need to show variant options with availability signals, or a customer is making option selections (Color, Size, and so on). Some response fields (description, options, metadata.attributes, metadata.tech_specs, metadata.top_features, metadata.unique_selling_points, variants[].condition) are inferred by Shopify and may not always be present or may vary in accuracy. Treat them as discovery and merchandising signals, not as merchant-authored source text.",
+      inputSchema: globalGetProductInputSchema
+    },
+    async ({ meta, catalog }: z.infer<typeof globalGetProductInputSchema>) => {
+      const response = await fetch("https://catalog.shopify.com/api/ucp/mcp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          jsonrpc: "2.0",
+          method: "tools/call",
+          id: 4,
+          params: { name: "get_product", arguments: { meta, catalog } }
+        })
+      });
+      const result = await response.json() as Record<string, unknown>;
+      return { content: [{ text: JSON.stringify(result), type: "text" }], structuredContent: result };
+    }
+  );
+		
   // --- Storefront Catalog Tools ---
 
   function createServer() {
