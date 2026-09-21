@@ -15,9 +15,11 @@ const globalSearchCatalogInputSchema = z.object({
           .string()
           .url()
           .describe("The URI to your agent's UCP profile for capability negotiation.")
-      })
+          .optional()
+      }).optional()
     })
-    .describe("Request metadata. You must include ucp-agent.profile."),
+    .describe("Request metadata. You must include ucp-agent.profile.")
+    .optional(),
   catalog: z
     .object({
       query: z
@@ -51,36 +53,43 @@ const globalSearchCatalogInputSchema = z.object({
         .object({
           available: z
             .boolean()
-            .describe("Filter by availability. Defaults to true (only sale-ready items). Set to false to include unavailable items."),
+            .describe("Filter by availability. Defaults to true (only sale-ready items). Set to false to include unavailable items.")
+            .optional(),
           ships_to: z
             .object({
               country: z.string().optional(),
               region: z.string().optional(),
               postal_code: z.string().optional()
             })
-            .describe("Filter to products that ship to a given location. Accepts country (ISO 3166-1 alpha-2), region, and postal_code."),
+            .describe("Filter to products that ship to a given location. Accepts country (ISO 3166-1 alpha-2), region, and postal_code.")
+            .optional(),
           ships_from: z
             .array(
               z.object({
-                country: z.string().describe("Merchant origin country (ISO 3166-1 alpha-2).")
+                country: z.string().describe("Merchant origin country (ISO 3166-1 alpha-2).").optional()
               })
             )
-            .describe("Filter by merchant origin country. Each entry accepts country (ISO 3166-1 alpha-2). Multiple entries use OR logic. Digital products that don't require shipping can still match this filter."),
+            .describe("Filter by merchant origin country. Each entry accepts country (ISO 3166-1 alpha-2). Multiple entries use OR logic. Digital products that don't require shipping can still match this filter.")
+            .optional(),
           price: z
             .object({
               min: z.number().int().optional(),
               max: z.number().int().optional()
             })
-            .describe("Price range in minor currency units. Accepts min and max integers. For example, {\"min\": 5000, \"max\": 20000} = $50.00–$200.00 USD."),
+            .describe("Price range in minor currency units. Accepts min and max integers. For example, {\"min\": 5000, \"max\": 20000} = $50.00–$200.00 USD.")
+            .optional(),
           condition: z
             .array(z.string())
-            .describe("Product condition filter. Known values: \"new\", \"secondhand\". Multiple values use OR logic."),
+            .describe("Product condition filter. Known values: \"new\", \"secondhand\". Multiple values use OR logic.")
+            .optional(),
           shops: z
             .array(z.string())
-            .describe("Filter to specific shops. Accepts an array of shop GIDs, for example gid://shopify/Shop/987654321. You can pass up to 1000 shop IDs per request."),
+            .describe("Filter to specific shops. Accepts an array of shop GIDs, for example gid://shopify/Shop/987654321. You can pass up to 1000 shop IDs per request.")
+            .optional(),
           attributes: z
             .array(z.object({}).passthrough())
-            .describe("Filter by Shopify taxonomy attributes. Supported names are Color, Size, and Target gender. Entries combine with AND logic. Values within one entry combine with OR logic. Unsupported attribute names are ignored and returned in messages."),
+            .describe("Filter by Shopify taxonomy attributes. Supported names are Color, Size, and Target gender. Entries combine with AND logic. Values within one entry combine with OR logic. Unsupported attribute names are ignored and returned in messages.")
+            .optional(),
           rating: z
             .object({
               variant: z
@@ -88,19 +97,23 @@ const globalSearchCatalogInputSchema = z.object({
                   min: z.number().min(0).max(5).optional().describe("The minimum rating value (0–5 scale)."),
                   min_count: z.number().int().min(0).optional().describe("The minimum number of reviews.")
                 })
+                .optional()
             })
-            .describe("Filter by variant rating. variant matches products with at least one variant whose rating meets the given thresholds. Set variant.min for the minimum rating value (0–5 scale) and variant.min_count for the minimum number of reviews."),
+            .describe("Filter by variant rating. variant matches products with at least one variant whose rating meets the given thresholds. Set variant.min for the minimum rating value (0–5 scale) and variant.min_count for the minimum number of reviews.")
+            .optional(),
           price_tier: z
             .array(z.string())
-            .describe("Filter by relative price tier within each product's category. Supported values are low, medium, and high. Multiple values use OR logic. Unsupported values are ignored and returned in messages."),
+            .describe("Filter by relative price tier within each product's category. Supported values are low, medium, and high. Multiple values use OR logic. Unsupported values are ignored and returned in messages.")
+            .optional(),
           categories: z
             .array(
               z.object({
-                id: z.string().describe("The taxonomy ID."),
+                id: z.string().describe("The taxonomy ID.").optional(),
                 taxonomy: z.string().optional().describe("The taxonomy source. Defaults to Shopify's standard taxonomy.")
               })
             )
             .describe("Filter by product category using taxonomy IDs. Each item accepts id (required) and taxonomy (optional, defaults to Shopify's standard taxonomy). Multiple values use OR logic.")
+            .optional()
         })
         .optional(),
       view: z
@@ -125,6 +138,7 @@ const globalSearchCatalogInputSchema = z.object({
         .optional()
     })
     .describe("The catalog object containing the search parameters. All parameters are wrapped in a catalog object. Refer to the UCP catalog search spec for the complete schema.")
+    .optional()
 });
 
 const globalLookupCatalogInputSchema = z.object({
@@ -135,41 +149,49 @@ const globalLookupCatalogInputSchema = z.object({
           .string()
           .url()
           .describe("The URI to your agent's UCP profile for capability negotiation.")
-      })
+          .optional()
+      }).optional()
     })
-    .describe("Request metadata. You must include ucp-agent.profile."),
+    .describe("Request metadata. You must include ucp-agent.profile.")
+    .optional(),
   catalog: z
     .object({
       ids: z
         .array(z.string())
         .min(1)
         .max(50)
-        .describe("Array of product or variant identifiers (1 to 50). Accepts gid://shopify/p/{upid}, gid://shopify/ProductVariant/{id}, and http or https Shopify product URLs. Multiple IDs that resolve to the same product are grouped into a single product in the response."),
+        .describe("Array of product or variant identifiers (1 to 50). Accepts gid://shopify/p/{upid}, gid://shopify/ProductVariant/{id}, and http or https Shopify product URLs. Multiple IDs that resolve to the same product are grouped into a single product in the response.")
+        .optional(),
       filters: z
         .object({
           available: z
             .boolean()
-            .describe("Filter by availability. Defaults to true (only sale-ready items). Set to false to include unavailable items."),
+            .describe("Filter by availability. Defaults to true (only sale-ready items). Set to false to include unavailable items.")
+            .optional(),
           ships_to: z
             .object({
               country: z.string().optional(),
               region: z.string().optional(),
               postal_code: z.string().optional()
             })
-            .describe("Filter to products that ship to a given location. Accepts country, region, and postal_code."),
+            .describe("Filter to products that ship to a given location. Accepts country, region, and postal_code.")
+            .optional(),
           ships_from: z
             .array(
               z.object({
-                country: z.string().describe("Merchant origin country (ISO 3166-1 alpha-2).")
+                country: z.string().describe("Merchant origin country (ISO 3166-1 alpha-2).").optional()
               })
             )
-            .describe("Filter by merchant origin country. Each entry accepts country (ISO 3166-1 alpha-2). Multiple entries use OR logic. Digital products that don't require shipping can still match this filter."),
+            .describe("Filter by merchant origin country. Each entry accepts country (ISO 3166-1 alpha-2). Multiple entries use OR logic. Digital products that don't require shipping can still match this filter.")
+            .optional(),
           condition: z
             .array(z.string())
-            .describe("Product condition filter. Known values: \"new\", \"secondhand\". Multiple values use OR logic."),
+            .describe("Product condition filter. Known values: \"new\", \"secondhand\". Multiple values use OR logic.")
+            .optional(),
           shops: z
             .array(z.string())
             .describe("Filter to specific shops. Accepts an array of shop GIDs, for example gid://shopify/Shop/987654321. You can pass up to 1000 shop IDs per request.")
+            .optional()
         })
         .optional(),
       context: z
@@ -189,6 +211,7 @@ const globalLookupCatalogInputSchema = z.object({
         .optional()
     })
     .describe("The catalog object containing the lookup parameters. All parameters are wrapped in a catalog object. Refer to the UCP catalog lookup spec for the complete schema.")
+    .optional()
 });
 
 const globalGetProductInputSchema = z.object({
@@ -199,14 +222,17 @@ const globalGetProductInputSchema = z.object({
           .string()
           .url()
           .describe("The URI to your agent's UCP profile for capability negotiation.")
-      })
+          .optional()
+      }).optional()
     })
-    .describe("Request metadata. You must include ucp-agent.profile."),
+    .describe("Request metadata. You must include ucp-agent.profile.")
+    .optional(),
   catalog: z
     .object({
       id: z
         .string()
-        .describe("Product or variant identifier. Accepts gid://shopify/p/{upid} or gid://shopify/ProductVariant/{id}."),
+        .describe("Product or variant identifier. Accepts gid://shopify/p/{upid} or gid://shopify/ProductVariant/{id}.")
+        .optional(),
       selected: z
         .array(
           z.object({
@@ -228,23 +254,28 @@ const globalGetProductInputSchema = z.object({
               region: z.string().optional(),
               postal_code: z.string().optional()
             })
-            .describe("Filter to products that ship to a given location. Accepts country, region, and postal_code."),
+            .describe("Filter to products that ship to a given location. Accepts country, region, and postal_code.")
+            .optional(),
           ships_from: z
             .array(
               z.object({
-                country: z.string().describe("Merchant origin country (ISO 3166-1 alpha-2).")
+                country: z.string().describe("Merchant origin country (ISO 3166-1 alpha-2).").optional()
               })
             )
-            .describe("Filter by merchant origin country. Each entry accepts country (ISO 3166-1 alpha-2). Multiple entries use OR logic. Digital products that don't require shipping can still match this filter."),
+            .describe("Filter by merchant origin country. Each entry accepts country (ISO 3166-1 alpha-2). Multiple entries use OR logic. Digital products that don't require shipping can still match this filter.")
+            .optional(),
           available: z
             .boolean()
-            .describe("Filter by availability. Defaults to true (only sale-ready items). Set to false to include unavailable items."),
+            .describe("Filter by availability. Defaults to true (only sale-ready items). Set to false to include unavailable items.")
+            .optional(),
           condition: z
             .array(z.string())
-            .describe("Product condition filter. Known values: \"new\", \"secondhand\". Multiple values use OR logic."),
+            .describe("Product condition filter. Known values: \"new\", \"secondhand\". Multiple values use OR logic.")
+            .optional(),
           shops: z
             .array(z.string())
             .describe("Filter to specific shops. Accepts an array of shop GIDs, for example gid://shopify/Shop/987654321. You can pass up to 1000 shop IDs per request.")
+            .optional()
         })
         .optional(),
       context: z
@@ -264,6 +295,7 @@ const globalGetProductInputSchema = z.object({
         .optional()
     })
     .describe("The catalog object containing the product lookup parameters. All parameters are wrapped in a catalog object. Refer to the UCP catalog lookup spec for the complete schema.")
+    .optional()
 });
 
 // ==========================================
