@@ -746,7 +746,11 @@ function createServer() {
 }
 
 export default {
-	fetch(request, env, ctx) {
-		return createMcpHandler(createServer)(request, env, ctx);
-	},
+  fetch(request, env, ctx) {
+    return createMcpHandler(createServer, {
+      allowedHostnames: ["master-group-mcp.anigok.com"],
+      allowedOriginHostnames: "*",
+    })(request, env, ctx);
+  },
 } satisfies ExportedHandler;
+
