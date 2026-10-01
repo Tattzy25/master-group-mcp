@@ -1,11 +1,9 @@
 import { McpServer } from "@modelcontextprotocol/server";
 import { createMcpHandler } from "agents/mcp/server";
 import { z } from "zod";
-
 // ==========================================
 // STOREFRONT CATALOG SCHEMAS
 // ==========================================
-
 const searchCatalogInputSchema = z.object({
   shop_domain: z
     .string()
@@ -62,7 +60,6 @@ const searchCatalogInputSchema = z.object({
     })
     .describe("The catalog object containing the search parameters. All parameters are wrapped in a catalog object. Refer to the UCP catalog search spec for the complete schema.")
 });
-
 const getProductInputSchema = z.object({
   shop_domain: z
     .string()
@@ -103,11 +100,9 @@ const getProductInputSchema = z.object({
     })
     .describe("The catalog object containing the product lookup parameters. All parameters are wrapped in a catalog object. Refer to the UCP catalog lookup spec for the complete schema.")
 });
-
 // ==========================================
 // CART SCHEMAS
 // ==========================================
-
 const createCartInputSchema = z.object({
   shop_domain: z
     .string()
@@ -182,7 +177,6 @@ const createCartInputSchema = z.object({
     })
     .describe("The cart object containing the cart data.")
 });
-
 const updateCartInputSchema = z.object({
   shop_domain: z
     .string()
@@ -258,11 +252,9 @@ const updateCartInputSchema = z.object({
       "The cart object containing the full desired cart state. Any field you omit is removed from the cart. update_cart uses PUT semantics and does not merge partial updates."
     )
 });
-
 // ==========================================
 // CHECKOUT SCHEMAS
 // ==========================================
-
 const createCheckoutInputSchema = z.object({
   shop_domain: z
     .string()
@@ -365,7 +357,6 @@ const createCheckoutInputSchema = z.object({
   if (value.cart_id) {
     return;
   }
-
   if (!value.checkout) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
@@ -374,7 +365,6 @@ const createCheckoutInputSchema = z.object({
     });
     return;
   }
-
   if (!value.checkout.currency) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
@@ -382,7 +372,6 @@ const createCheckoutInputSchema = z.object({
       path: ["checkout", "currency"]
     });
   }
-
   if (!value.checkout.line_items) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
@@ -390,7 +379,6 @@ const createCheckoutInputSchema = z.object({
       path: ["checkout", "line_items"]
     });
   }
-
   if (!value.checkout.buyer) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
@@ -399,7 +387,6 @@ const createCheckoutInputSchema = z.object({
     });
   }
 });
-
 const updateCheckoutInputSchema = z.object({
   shop_domain: z
     .string()
@@ -493,11 +480,9 @@ const updateCheckoutInputSchema = z.object({
       "The checkout object containing the complete updated checkout state. update_checkout uses PUT semantics. Omit a field and it is removed from the checkout. There is no server-side merge of partial updates."
     )
 });
-
 // ==========================================
 // FAQ & POLICIES SCHEMAS
 // ==========================================
-
 const searchShopPoliciesAndFaqsInputSchema = z.object({
   store_domain: z
     .string()
@@ -514,19 +499,15 @@ const searchShopPoliciesAndFaqsInputSchema = z.object({
     )
     .optional()
 });
-
 // ==========================================
 // SERVER CREATION
 // ==========================================
-
 function createServer() {
   const server = new McpServer({
     name: "Master Group MCP",
     version: "1.0.0"
   });
-
   // --- Storefront Catalog Tools ---
-
   server.registerTool(
     "search_catalog",
     {
@@ -548,7 +529,6 @@ function createServer() {
       return { content: [{ text: JSON.stringify(result), type: "text" }], structuredContent: result };
     }
   );
-
   server.registerTool(
     "get_product",
     {
@@ -570,7 +550,6 @@ function createServer() {
       return { content: [{ text: JSON.stringify(result), type: "text" }], structuredContent: result };
     }
   );
-
   // --- Cart Tools ---
   server.registerTool(
     "create_cart",
@@ -596,7 +575,6 @@ function createServer() {
       return { content: [{ text: JSON.stringify(result), type: "text" }], structuredContent: result };
     }
   );
-
   server.registerTool(
     "update_cart",
     {
@@ -621,7 +599,6 @@ function createServer() {
       return { content: [{ text: JSON.stringify(result), type: "text" }], structuredContent: result };
     }
   );
-
   // --- Checkout Tools ---
   server.registerTool(
     "create_checkout",
@@ -650,7 +627,6 @@ function createServer() {
       return { content: [{ text: JSON.stringify(result), type: "text" }], structuredContent: result };
     }
   );
-
   server.registerTool(
     "update_checkout",
     {
@@ -668,4 +644,70 @@ function createServer() {
           params: { name: "update_checkout", arguments: { meta, id, checkout } }
         })
       });
-      const result = await response.json() as Record
+      const result = await response.json() as Record<string, unknown>;
+      if ("error" in result) {
+        return { content: [{ text: JSON.stringify(result), type: "text" }], structuredContent: result, isError: true };
+      }
+      return { content: [{ text: JSON.stringify(result), type: "text" }], structuredContent: result };
+    }
+  );
+  // --- FAQ & Policies Tools ---
+  server.registerTool(
+    "search_shop_policies_and_faqs",
+    {
+      description: "Answers questions about the store's policies, products, and services to build customer trust. When to use: A customer asks \"What's your return policy?\", You need to clarify shipping or payment options, or A customer has questions about product care or warranties. Use natural language to query the search or the search will fail.",
+      inputSchema: searchShopPoliciesAndFaqsInputSchema
+    },
+    async ({ store_domain, query, context }: z.infer<typeof searchShopPoliciesAndFaqsInputSchema>) => {
+      const response = await fetch(`https://${store_domain}/api/mcp`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          jsonrpc: "2.0",
+          method: "tools/call",
+          id: 1,
+          params: {
+            name: "search_shop_policies_and_faqs",
+            arguments: {
+              query,
+              ...(context ? { context } : {})
+            }
+          }
+        })
+      });
+      const result = await response.json() as Record<string, unknown>;
+      if ("error" in result) {
+        return {
+          content: [
+            {
+              text: JSON.stringify(result),
+              type: "text"
+            }
+          ],
+          structuredContent: result,
+          isError: true
+        };
+      }
+      return {
+        content: [
+          {
+            text: JSON.stringify(result),
+            type: "text"
+          }
+        ],
+        structuredContent: result
+      };
+    }
+  );
+  return server;
+}
+export default {
+  fetch(request, env, ctx) {
+    return createMcpHandler(createServer, {
+      allowedHostnames: ["master-group-mcp.anigok.com"],
+      allowedOriginHostnames: "*",
+    })(request, env, ctx);
+  },
+} satisfies ExportedHandler;
