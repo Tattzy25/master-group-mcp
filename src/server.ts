@@ -62,6 +62,7 @@ const searchCatalogInputSchema = z.object({
     })
     .describe("The catalog object containing the search parameters. All parameters are wrapped in a catalog object. Refer to the UCP catalog search spec for the complete schema.")
 });
+
 const getProductInputSchema = z.object({
   shop_domain: z
     .string()
@@ -181,6 +182,7 @@ const createCartInputSchema = z.object({
     })
     .describe("The cart object containing the cart data.")
 });
+
 const updateCartInputSchema = z.object({
   shop_domain: z
     .string()
@@ -344,14 +346,6 @@ const createCheckoutInputSchema = z.object({
           "Optional attribution metadata. Supported fields include referring_domain, click_id_tag, click_id_value, activity_id_tag, activity_id_value, utm_campaign, utm_source, utm_medium, utm_content, and utm_term."
         )
         .optional(),
-      discounts: z
-        .object({
-          codes: z.array(z.string()).describe("Discount codes to apply to the checkout.")
-        })
-        .describe(
-          "Optional discount codes. Forward cart discount codes in checkout.discounts.codes during cart-to-checkout conversion."
-        )
-        .optional(),
       fulfillment: z
         .object({})
         .passthrough()
@@ -479,12 +473,6 @@ const updateCheckoutInputSchema = z.object({
         .describe(
           "Attribution metadata. Because the checkout object is replaced, resend attribution if you want to preserve it."
         )
-        .optional(),
-      discounts: z
-        .object({
-          codes: z.array(z.string()).describe("Updated discount codes for the checkout.")
-        })
-        .describe("Updated discount codes for the checkout.")
         .optional(),
       fulfillment: z
         .object({})
@@ -680,77 +668,4 @@ function createServer() {
           params: { name: "update_checkout", arguments: { meta, id, checkout } }
         })
       });
-      const result = await response.json() as Record<string, unknown>;
-      if ("error" in result) {
-        return { content: [{ text: JSON.stringify(result), type: "text" }], structuredContent: result, isError: true };
-      }
-      return { content: [{ text: JSON.stringify(result), type: "text" }], structuredContent: result };
-    }
-  );
-
-  // --- FAQ & Policies Tools ---
-  server.registerTool(
-    "search_shop_policies_and_faqs",
-    {
-      description: "Answers questions about the store's policies, products, and services to build customer trust. When to use: A customer asks \"What's your return policy?\", You need to clarify shipping or payment options, or A customer has questions about product care or warranties. Use natural language to query the search or the search will fail.",
-      inputSchema: searchShopPoliciesAndFaqsInputSchema
-    },
-    async ({ store_domain, query, context }: z.infer<typeof searchShopPoliciesAndFaqsInputSchema>) => {
-      const response = await fetch(`https://${store_domain}/api/mcp`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          jsonrpc: "2.0",
-          method: "tools/call",
-          id: 1,
-          params: {
-            name: "search_shop_policies_and_faqs",
-            arguments: {
-              query,
-              ...(context ? { context } : {})
-            }
-          }
-        })
-      });
-
-      const result = await response.json() as Record<string, unknown>;
-
-      if ("error" in result) {
-        return {
-          content: [
-            {
-              text: JSON.stringify(result),
-              type: "text"
-            }
-          ],
-          structuredContent: result,
-          isError: true
-        };
-      }
-
-      return {
-        content: [
-          {
-            text: JSON.stringify(result),
-            type: "text"
-          }
-        ],
-        structuredContent: result
-      };
-    }
-  );
-
-  return server;
-}
-
-export default {
-  fetch(request, env, ctx) {
-    return createMcpHandler(createServer, {
-      allowedHostnames: ["master-group-mcp.anigok.com"],
-      allowedOriginHostnames: "*",
-    })(request, env, ctx);
-  },
-} satisfies ExportedHandler;
-
+      const result = await response.json() as Record
